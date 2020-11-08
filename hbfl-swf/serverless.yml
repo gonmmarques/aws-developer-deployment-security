@@ -1,0 +1,124 @@
+service: hbfl-swf
+
+custom:
+  dynamoTableName: hbfl-race-results
+  s3BucketName: hbfl-race-results-gm
+  workflowDomain: HBFL-DOMAIN
+  workflowTypeName: process-race-results
+  workflowTypeVersion: '1.0'
+  workflowTaskList: 'process-results'
+  activityReadS3: 'read-s3-bucket'
+  activityReadS3Version: '1.0'
+  activityProcessResults: 'process-race-result'
+  activityProcessResultsVersion: '1.0'
+  activityCleanS3: 'clean-s3-bucket'
+  activityCleanS3Version: '1.0'
+  remover:
+    buckets:
+      - ${self:custom.s3BucketName}
+  client:
+    bucketName: ${self:custom.s3BucketName}
+    distributionFolder: s3
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${file(./region.js)}
+
+  environment:
+    DYNAMO_TABLE_NAME: ${self:custom.dynamoTableName}
+    S3_BUCKET: ${self:custom.s3BucketName}
+    WORKFLOW_DOMAIN: ${self:custom.workflowDomain}
+    WORKFLOW_TYPE_NAME: ${self:custom.workflowTypeName}
+    WORKFLOW_TYPE_VERSION: ${self:custom.workflowTypeVersion}
+    WORKFLOW_TASK_LIST: ${self:custom.workflowTaskList}
+    ACTIVITY_READ_S3: ${self:custom.activityReadS3}
+    ACTIVITY_READ_S3_VERSION: ${self:custom.activityReadS3Version}
+    ACTIVITY_PROCESS_RESULTS: ${self:custom.activityProcessResults}
+    ACTIVITY_PROCESS_RESULTS_VERSION: ${self:custom.activityProcessResultsVersion}
+    ACTIVITY_CLEAN_S3: ${self:custom.activityCleanS3}
+    ACTIVITY_CLEAN_S3_VERSION: ${self:custom.activityCleanS3Version}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "swf:*"
+      Resource:
+        Fn::Join:
+          - ":"
+          - - "arn:aws:swf"
+            - "Ref": "AWS::Region"
+            - "Ref": "AWS::AccountId"
+            - "/domain/HBFL-DOMAIN"
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource:
+        - "arn:aws:s3:::${self:custom.s3BucketName}"
+        - "arn:aws:s3:::${self:custom.s3BucketName}/*"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:BatchWriteItem"
+      Resource:
+        Fn::Join:
+          - ":"
+          - - "arn:aws:dynamodb"
+            - "Ref": "AWS::Region"
+            - "Ref": "AWS::AccountId"
+            - "table/${self:custom.dynamoTableName}"
+
+functions:
+  initiator:
+    handler: src/initiator.init
+    events:
+      - schedule: cron(0 0 * * ? *)
+
+  decider:
+    handler: src/decider.poll
+    timeout: 120
+    events:
+      - schedule: rate(2 minutes)
+
+  s3ReaderWorker:
+    handler: src/s3ReaderWorker.poll
+    timeout: 120
+    events:
+      - schedule: rate(2 minutes)
+
+  resultProcessorWorker:
+    handler: src/resultProcessorWorker.poll
+    timeout: 120
+    events:
+      - schedule: rate(2 minutes)
+
+  s3CleanerWorker:
+    handler: src/s3CleanerWorker.poll
+    timeout: 120
+    events:
+      - schedule: rate(2 minutes)
+
+resources:
+  Resources:
+    HamsterRaceResultsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.s3BucketName}
+    HamsterRaceResultsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.dynamoTableName}
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 5
+
+plugins:
+  - serverless-s3-remover
+  - serverless-finch

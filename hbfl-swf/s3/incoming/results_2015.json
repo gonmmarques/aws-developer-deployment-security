@@ -1,0 +1,41 @@
+[
+  {
+    "id": "Kraft 35 - 2015",
+    "location": "Tokyo, Japan",
+    "date": "07/14/2015",
+    "results": [
+      { "hamster": "Zepto", "place": 1 },
+      { "hamster": "Milkshake", "place": 2 },
+      { "hamster": "Fievel", "place": 3 },
+      { "hamster": "Baby Ham", "place": 4 },
+      { "hamster": "Tater", "place": 5 },
+      { "hamster": "Peter Pan", "place": 6 }
+    ]
+  },
+  {
+    "id": "Petco 2000 - 2015",
+    "location": "Seattle, WA",
+    "date": "04/29/2015",
+    "results": [
+      { "hamster": "Zepto", "place": 1 },
+      { "hamster": "Milkshake", "place": 2 },
+      { "hamster": "Fievel", "place": 3 },
+      { "hamster": "Baby Ham", "place": 4 },
+      { "hamster": "Tater", "place": 5 },
+      { "hamster": "Peter Pan", "place": 6 }
+    ]
+  },
+  {
+    "id": "Triscuit Circuit 4700 - 2015",
+    "location": "Daytona Beach, FL",
+    "date": "09/21/2015",
+    "results": [
+      { "hamster": "Zepto", "place": 1 },
+      { "hamster": "Milkshake", "place": 2 },
+      { "hamster": "Fievel", "place": 3 },
+      { "hamster": "Baby Ham", "place": 4 },
+      { "hamster": "Tater", "place": 5 },
+      { "hamster": "Peter Pan", "place": 6 }
+    ]
+  }
+]
