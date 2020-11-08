@@ -1,0 +1,35 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "This is stored as the description in the AWS console",
+
+  "Parameters" : {
+    "UniqueParameterName" : {
+      "Type" : "String|Number|List<Number>|CommaDelimitedList|AWSType|etc...",
+      "Default" : "a",
+      "AllowedValues" : [ "a", "b", "c", "d", "e"]
+    }
+  },
+
+  "Resources" : {
+    "UniqueResourceLogicalName" : {
+      "Type" : "AWS::EC2::Instance|AWS::ApiGateway::Method|AWS::Lambda::Function|etc...",
+      "Properties" : {
+        "InstanceType" : { "Ref" : "UniqueParameterName" },
+        "SecurityGroups" : [ "sg-123456" ],
+        "KeyName" : "mykeyname",
+        "ImageId" : "ami-1c49ae66"
+      }
+    }
+  },
+
+  "Outputs" : {
+    "OutputLogicalName" : {
+      "Description" : "InstanceId of the newly created EC2 instance",
+      "Value" : { "Ref" : "UniqueResourceLogicalName" },
+      "Export": {
+        "Name": { "Ref": "UniqueResourceLogicalName" }
+      }
+    }
+  }
+}

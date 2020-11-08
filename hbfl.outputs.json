@@ -1,0 +1,6 @@
+"Outputs": {
+  "LoadBalancerUrl": {
+    "Description": "InstanceId of the newly created EC2 instance",
+    "Value": { "Fn::Sub": ["http://${url}", { "url": { "Fn::GetAtt": [ "HamsterLoadBalancer", "DNSName" ] } }] }
+  }
+}
