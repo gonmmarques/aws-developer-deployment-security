@@ -7,6 +7,7 @@ The scope of the course is to know more about effectively deploying applications
 - Virtual Private Cloud
 - CloudWatch
 - CloudTrail
+- Key Management Service
 - Identity and Access Management
 
 
