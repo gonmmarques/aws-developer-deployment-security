@@ -1,0 +1,72 @@
+"HamsterVPC": {
+  "Type": "AWS::EC2::VPC",
+  "Properties": {
+    "CidrBlock": "10.0.0.0/16",
+    "Tags": [{ "Key": "Name", "Value": "Hamster VPC" }]
+  }
+},
+
+"HamsterPublicSubnetA": {
+  "Type": "AWS::EC2::Subnet",
+  "Properties": {
+    "AvailabilityZone": { "Fn::Select": [ "0", { "Fn::GetAZs": { "Ref": "AWS::Region" } } ] },
+    "CidrBlock": "10.0.10.0/24",
+    "MapPublicIpOnLaunch": true,
+    "VpcId": { "Ref": "HamsterVPC" }
+  }
+},
+
+"HamsterPublicSubnetB": {
+  "Type": "AWS::EC2::Subnet",
+  "Properties": {
+    "AvailabilityZone": { "Fn::Select": [ "1", { "Fn::GetAZs": { "Ref": "AWS::Region" } } ] },
+    "CidrBlock": "10.0.20.0/24",
+    "MapPublicIpOnLaunch": true,
+    "VpcId": { "Ref": "HamsterVPC" }
+  }
+},
+
+"HamsterRouteTable": {
+  "Type": "AWS::EC2::RouteTable",
+  "Properties": {
+    "VpcId": { "Ref": "HamsterVPC" }
+  }
+},
+
+"HamsterIGWRoute": {
+  "Type": "AWS::EC2::Route",
+  "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": { "Ref": "HamsterInternetGateway" },
+    "RouteTableId": { "Ref": "HamsterRouteTable" }
+  }
+},
+
+"HamsterInternetGateway": {
+  "Type": "AWS::EC2::InternetGateway",
+  "Properties": { }
+},
+
+"HamsterIGWAttachment": {
+  "Type": "AWS::EC2::VPCGatewayAttachment",
+  "Properties": {
+    "InternetGatewayId": { "Ref": "HamsterInternetGateway" },
+    "VpcId": { "Ref": "HamsterVPC" }
+  }
+},
+
+"HamsterSubnetRouteTableAssociationA": {
+  "Type": "AWS::EC2::SubnetRouteTableAssociation",
+  "Properties": {
+    "RouteTableId": { "Ref": "HamsterRouteTable"},
+    "SubnetId": { "Ref": "HamsterPublicSubnetA" }
+  }
+},
+
+"HamsterSubnetRouteTableAssociationB": {
+  "Type": "AWS::EC2::SubnetRouteTableAssociation",
+  "Properties": {
+    "RouteTableId": { "Ref": "HamsterRouteTable"},
+    "SubnetId": { "Ref": "HamsterPublicSubnetB" }
+  }
+}

@@ -30,18 +30,6 @@
       "Description": "Key pair name for the EC2 instance",
       "Type": "AWS::EC2::KeyPair::KeyName",
       "Default": "cf"
-    },
-  
-    "VPCIdParameter": {
-      "Description": "VPC id for the Target Group",
-      "Type": "AWS::EC2::VPC::Id",
-      "Default": "vpc-69e7600e"
-    },
-  
-    "SubnetListParameter": {
-      "Description": "List of Subnets for the Load Balancer. These should be for the a and b availability zones",
-      "Type": "List<AWS::EC2::Subnet::Id>",
-      "Default": "subnet-e2f79887,subnet-b4be989e"
     }
   },
   
@@ -53,7 +41,8 @@
         "SecurityGroupIds": [ { "Ref": "HamsterSecurityGroup" } ],
         "KeyName": { "Ref": "KeyNameParameter" },
         "ImageId": { "Ref": "ImageIdParameter"},
-        "UserData": { "Fn::FindInMap": ["Static", "UserData", "Value"] }
+        "UserData": { "Fn::FindInMap": ["Static", "UserData", "Value"] },
+        "SubnetId": { "Ref": "HamsterPublicSubnetA"}
       }
     },
   
@@ -72,7 +61,7 @@
           "ToPort": "3000",
           "CidrIp": "0.0.0.0/0"
         } ],
-        "VpcId": { "Ref": "VPCIdParameter" }
+        "VpcId": { "Ref": "HamsterVPC" }
       }
     },
   
@@ -86,7 +75,8 @@
         "LaunchConfigurationName": { "Ref": "HamsterLaunchConfiguration" },
         "MaxSize": "2",
         "MinSize": "1",
-        "TargetGroupARNs": [ { "Ref": "HamsterTargetGroup" } ]
+        "TargetGroupARNs": [ { "Ref": "HamsterTargetGroup" } ],
+        "VPCZoneIdentifier": [{ "Ref": "HamsterPublicSubnetA" }, { "Ref": "HamsterPublicSubnetB" }] 
       }
     },
   
@@ -123,7 +113,7 @@
         "Port" : 3000,
         "Protocol" : "HTTP",
         "Targets": [{ "Id": { "Ref": "HamsterEC2Instance" } }],
-        "VpcId" : { "Ref": "VPCIdParameter" }
+        "VpcId" : { "Ref": "HamsterVPC" }
       }
     },
   
@@ -162,7 +152,8 @@
           "FromPort": "80",
           "ToPort": "80",
           "CidrIp": "0.0.0.0/0"
-        } ]
+        } ],
+        "VpcId": { "Ref": "HamsterVPC"}
       }
     },
   
@@ -170,7 +161,7 @@
       "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
       "Properties" : {
         "SecurityGroups" : [{ "Fn::GetAtt": ["HamsterLoadBalancerSecurityGroup", "GroupId"] }],
-        "Subnets" : { "Ref": "SubnetListParameter" }
+        "Subnets" : [{ "Ref": "HamsterPublicSubnetA" }, { "Ref": "HamsterPublicSubnetB" }]
       }
     },
   
@@ -187,7 +178,81 @@
         "Port" : 80,
         "Protocol" : "HTTP"
       }
+    },
+
+    "HamsterVPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "Tags": [{ "Key": "Name", "Value": "Hamster VPC" }]
+      }
+    },
+    
+    "HamsterPublicSubnetA": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": { "Fn::Select": [ "0", { "Fn::GetAZs": { "Ref": "AWS::Region" } } ] },
+        "CidrBlock": "10.0.10.0/24",
+        "MapPublicIpOnLaunch": true,
+        "VpcId": { "Ref": "HamsterVPC" }
+      }
+    },
+    
+    "HamsterPublicSubnetB": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": { "Fn::Select": [ "1", { "Fn::GetAZs": { "Ref": "AWS::Region" } } ] },
+        "CidrBlock": "10.0.20.0/24",
+        "MapPublicIpOnLaunch": true,
+        "VpcId": { "Ref": "HamsterVPC" }
+      }
+    },
+    
+    "HamsterRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": { "Ref": "HamsterVPC" }
+      }
+    },
+    
+    "HamsterIGWRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": { "Ref": "HamsterInternetGateway" },
+        "RouteTableId": { "Ref": "HamsterRouteTable" }
+      }
+    },
+    
+    "HamsterInternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": { }
+    },
+    
+    "HamsterIGWAttachment": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "InternetGatewayId": { "Ref": "HamsterInternetGateway" },
+        "VpcId": { "Ref": "HamsterVPC" }
+      }
+    },
+    
+    "HamsterSubnetRouteTableAssociationA": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": { "Ref": "HamsterRouteTable"},
+        "SubnetId": { "Ref": "HamsterPublicSubnetA" }
+      }
+    },
+    
+    "HamsterSubnetRouteTableAssociationB": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": { "Ref": "HamsterRouteTable"},
+        "SubnetId": { "Ref": "HamsterPublicSubnetB" }
+      }
     }
+    
   },
   
   "Outputs": {
