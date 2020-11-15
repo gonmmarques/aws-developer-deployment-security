@@ -1,0 +1,127 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Description": "Hamster Ball Fantasy League Application",
+
+  "Resources": {
+    "User1": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+          "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+        ],
+        "UserName": "sam@hbfl.online"
+      }
+    },
+    "User2": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+          "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+        ],
+        "UserName": "susan@hbfl.online"
+      }
+    },
+    "User3": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+        ],
+        "UserName": "nick@hbfl.online"
+      }
+    },
+    "User4": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+          "arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess"
+        ],
+        "UserName": "jenn@hbfl.online"
+      }
+    },
+    "User5": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+          "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+        ],
+        "UserName": "bob@hbfl.online"
+      }
+    },
+    "User6": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+        ],
+        "UserName": "andre@hbfl.online"
+      }
+    },
+    "User7": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+          "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+        ],
+        "UserName": "candace@hbfl.online"
+      }
+    },
+    "ServiceReadPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "ServiceReadPolicy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "cloudformation:Describe*",
+                "cloudformation:List*",
+                "ec2:Describe*",
+                "ec2:List*",
+                "dynamodb:Describe*",
+                "dynamodb:List*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        },
+        "Users": [
+          { "Ref": "User1" },
+          { "Ref": "User4" },
+          { "Ref": "User6" },
+          { "Ref": "User7" }
+        ]
+      }
+    },
+    "CloudFormationFullAccessPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "CloudFormationFullAccessPolicy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "cloudformation:*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        },
+        "Users": [
+          { "Ref": "User2" },
+          { "Ref": "User5" }
+        ]
+      }
+    }
+  }
+}
